@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Author</key>
+	<string>Ethan Sherbondy</string>
+	<key>CFBundleDisplayName</key>
+	<string>Tumblr Notifier</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.tooepic.tumblrnotifier</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>Chrome</key>
+	<dict>
+		<key>Global Page</key>
+		<string>global.html</string>
+		<key>Toolbar Items</key>
+		<array>
+			<dict>
+				<key>Command</key>
+				<string>loadDashboard</string>
+				<key>Identifier</key>
+				<string>tumblr_posts</string>
+				<key>Image</key>
+				<string>t.png</string>
+				<key>Label</key>
+				<string>Dashboard</string>
+				<key>Palette Label</key>
+				<string>Tumblr Dashboard</string>
+				<key>Tool Tip</key>
+				<string>Tumblr Dashboard</string>
+			</dict>
+		</array>
+	</dict>
+	<key>Content</key>
+	<dict>
+		<key>Scripts</key>
+		<dict>
+			<key>End</key>
+			<array>
+				<string>latest_post.js</string>
+			</array>
+		</dict>
+	</dict>
+	<key>Description</key>
+	<string>Notifies you when a new post appears in your Tumblr Dashboard. Credentials are stored securely.</string>
+	<key>ExtensionInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>Permissions</key>
+	<dict>
+		<key>Website Access</key>
+		<dict>
+			<key>Allowed Domains</key>
+			<array>
+				<string>www.tumblr.com</string>
+			</array>
+			<key>Level</key>
+			<string>Some</string>
+		</dict>
+	</dict>
+	<key>Update Manifest URL</key>
+	<string>http://www.tooepic.com/notifier/update.plist</string>
+	<key>Website</key>
+	<string>http://www.tooepic.com/tumblr</string>
+</dict>
+</plist>
