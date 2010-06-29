@@ -16,7 +16,7 @@ sec.addEventListener("change", validateAccount, false);
 
 app.addEventListener("message", handleMessage, false);
 app.addEventListener("command", handleCommand, false);
-app.addEventListener("validate", performValidate, false);
+app.addEventListener("validate", updateBadges, false);
 
 function validateAccount(e) {
 	var email = sec.email;
@@ -34,8 +34,11 @@ function validateAccount(e) {
 				set.account_valid = true;
 			},
 			error: function(e, r, s) {
-				console.log("Error: "+e.status);
-				set.account_valid = false;
+				if (e.status == 403) {
+					set.account_valid = false;
+				} else {
+					console.log("Unexpected error: "+e.status);
+				}
 			}
 		});
 	}
@@ -63,7 +66,7 @@ function handleCommand(e) {
 	}
 }
 
-function performValidate(e)
+function updateBadges(e)
 {
     if (e.command === "loadDashboard") {
 		if ("badge" in e.target) {
@@ -118,9 +121,16 @@ function checkForPosts() {
 				interval = setInterval(findLastChecked, 1000);
 			},
 			error: function(e, r, s) {
-				console.log("Tumblr server error: "+e.status);
-				// Tumblr's servers aren't doing so well. Recheck in 30 secs.
-				interval = setInterval(findLastChecked, 30000);
+				if (e.status == 403) {
+					set.account_valid = false;
+					interval = setInterval(findLastChecked, 1000);
+				} else 	if (e.status == 503) {
+					console.log("Tumblr server error: "+e.status);
+					// Tumblr's servers aren't doing so well. Recheck in 30 secs.
+					interval = setInterval(findLastChecked, 30000);
+				} else {
+					console.log("Unexpected error: "+e.status);
+				}
 			}
 		});
 	} else {
