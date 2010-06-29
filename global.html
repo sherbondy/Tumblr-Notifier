@@ -5,6 +5,8 @@
 <script src="jquery-1.4.2.min.js" type="text/javascript"></script>
 <script type="text/javascript">
 
+// RATE: how frequently the dashboard API is polled (in seconds)
+const RATE = 60*5;
 const app = safari.application;
 const sec = safari.extension.secureSettings; // email and password
 const set = safari.extension.settings; // everything else
@@ -150,8 +152,8 @@ function findLastChecked() {
 		// Determine the difference in seconds since last checked
 		var now = new Date().getTime();
 		var diff_secs = parseInt((now - set.last_checked)/1000);
-		// change this to check more frequently
-		if (diff_secs > 20) {
+		
+		if (diff_secs > RATE) {
 			checkForPosts();
 		}
 	}
