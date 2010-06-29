@@ -9,16 +9,16 @@ const app = safari.application;
 const sec = safari.extension.secureSettings; // email and password
 const set = safari.extension.settings; // everything else
 
-// checking every 20 seconds
-setInterval(checkForPosts, 20000);
+//	every second, find out the last time you checked the dashboard
+var interval = setInterval(findLastChecked, 1000);
 
-sec.addEventListener("change", validateSettings, false);
+sec.addEventListener("change", validateAccount, false);
 
 app.addEventListener("message", handleMessage, false);
 app.addEventListener("command", handleCommand, false);
 app.addEventListener("validate", performValidate, false);
 
-function validateSettings(e) {
+function validateAccount(e) {
 	var email = sec.email;
 	var pass = sec.password;
 	if (email && pass) {
@@ -45,7 +45,7 @@ function validateSettings(e) {
 function handleMessage(e) {
 	if (e.name === "setLatest") {
 		set.latest_post = parseInt(e.message);
-		console.log("We have a real post! ID: "+set.latest_post);
+		console.log("Latest post set to: "+set.latest_post);
 		updateUnreadCount(0);
 	}
 }
@@ -62,7 +62,6 @@ function performValidate(e)
     if (e.command === "loadDashboard") {
 		if ("badge" in e.target) {
         	e.target.badge = set.unread_posts;
-			console.log("Unread count updated to: "+set.unread_posts);
 		}
     }
 }
@@ -83,30 +82,61 @@ function updateUnreadCount(count) {
 }
 
 function checkForPosts() {
-	// maximum for num is 50. 20 seems adequate for now
-	if (set.account_valid && set.latest_post != 0) {
+	// maximum for num is 50
+	if (set.account_valid && set.unread_posts <= 250) {
+		interval = clearInterval(interval);
+		set.last_checked = new Date().getTime();
+		
 		$.ajax({
 			url: 'http://www.tumblr.com/api/dashboard', 
-			data: {email: sec.email, password: sec.password, num: 20},
+			data: {email: sec.email, password: sec.password, 
+				   start:set.unread_posts, num: 50},
 			type: 'POST',
 			dataType: 'xml',
+			
 			success: function(data) {
-				count = $(data).find("post[id='"+set.latest_post+"']").index();
-				if (count) {
-					console.log("Index of last seen post is "+count);
-					updateUnreadCount(count);
+				// If the user hasn't visited tumblr, set the latest post
+				if (set.latest_post == 0) {
+					set.latest_post = parseInt($(data).find("post:first").attr("id"));
+					console.log("Latest post set to: "+set.latest_post);
 				}
+				
+				count = $(data).find("post[id='"+set.latest_post+"']").index();
+				
+				if (count >= 0) {
+					total = count + set.unread_posts;
+					console.log("Unread count: "+total);
+					updateUnreadCount(total);
+				}
+				
+				interval = setInterval(findLastChecked, 1000);
 			},
 			error: function(e, r, s) {
 				console.log("Tumblr server error: "+e.status);
+				// Tumblr's servers aren't doing so well. Recheck in 30 secs.
+				interval = setInterval(findLastChecked, 30000);
 			}
 		});
 	} else {
 		if(!set.account_valid) {
-			console.log("Can't check for posts yet. Invalid Account.");
+			console.log("Invalid Account.");
 		}
-		if(set.latest_post == 0) {
-			console.log("Can't check for posts yet. Haven't visited Tumblr.");
+		if(set.unread_posts > 250) {
+			console.log("Too many posts to keep track of.");
+		}
+	}
+}
+
+function findLastChecked() {
+	if (set.last_checked == "never") {
+		checkForPosts();
+	} else {
+		// Determine the difference in seconds since last checked
+		var now = new Date().getTime();
+		var diff_secs = parseInt((now - set.last_checked)/1000);
+		// change this to check more frequently
+		if (diff_secs > 20) {
+			checkForPosts();
 		}
 	}
 }

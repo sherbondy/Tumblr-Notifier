@@ -42,5 +42,11 @@
 		<key>Key</key>
 		<string>account_valid</string>
 	</dict>
+	<dict>
+		<key>DefaultValue</key>
+		<string>never</string>
+		<key>Key</key>
+		<string>last_checked</string>
+	</dict>
 </array>
 </plist>
