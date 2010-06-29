@@ -52,8 +52,14 @@ function handleMessage(e) {
 
 function handleCommand(e) {
 	if (e.command === "loadDashboard") {
-		var new_tab = e.target.browserWindow.openTab();
-		new_tab.url = "http://www.tumblr.com/dashboard";
+		if (set.account_valid) {
+			var new_tab = e.target.browserWindow.openTab();
+			new_tab.url = "http://www.tumblr.com/dashboard";
+		} else {
+			alert("Hey, bub. Looks like your account credentials are invalid. "
+			+"Try retyping them, but carefully this time."
+			+"\n(Safari->Preferences->Extensions->Tumblr Notifier)");
+		}
 	}
 }
 
