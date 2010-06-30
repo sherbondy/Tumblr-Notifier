@@ -5,16 +5,18 @@
 <script src="jquery-1.4.2.min.js" type="text/javascript"></script>
 <script type="text/javascript">
 
-// RATE: how frequently the dashboard API is polled (in seconds)
-const RATE = 60*5;
-
 // These are a huge pain to type repeatedly.
 const app = safari.application;
 const sec = safari.extension.secureSettings; // email and password
 const set = safari.extension.settings; // everything else
 
-//	every second, find out the last time you checked the dashboard
-var interval = setInterval(findLastChecked, 1000);
+const invalid_text = "Looks like your account credentials are invalid: \n"
+				   + "(Safari->Preferences->Extensions->Tumblr Notifier)"
+
+// RATE: how frequently the dashboard API is polled (in milliseconds)
+const RATE = 1000*60*5;
+
+var interval = setInterval(checkForPosts, RATE);
 
 sec.addEventListener("change", validateAccount, false);
 
@@ -36,11 +38,13 @@ function validateAccount(e) {
 			success: function(data) {
 				console.log("Account Valid.")
 				set.account_valid = true;
+				// immediately check for new posts upon validation
+				checkForPosts();
 			},
 			error: function(e, r, s) {
 				if (e.status == 403) {
 					set.account_valid = false;
-					invalidAlert();
+					alert(invalid_text);
 				} else {
 					console.log("Unexpected error: "+e.status);
 				}
@@ -58,14 +62,8 @@ function handleMessage(e) {
 	}
 }
 
-function invalidAlert() {
-	alert("Hey, bub. Looks like your account credentials are invalid. "
-	+"Try retyping them, but carefully this time."
-	+"\n(Safari->Preferences->Extensions->Tumblr Notifier)");
-}
-
 function handleCommand(e) {
-	if (e.command === "loadDashboard") {
+	if (e.command === "openDashboard") {
 		/* 	Open Tumblr's dashboard in a new tab
 			when a user clicks the Toolbar Item. */
 		var new_tab = e.target.browserWindow.openTab();
@@ -73,36 +71,27 @@ function handleCommand(e) {
 	}
 }
 
-function updateBadges(e)
-{
-    if (e.command === "loadDashboard") {
-		if ("badge" in e.target) {
-        	e.target.badge = set.unread_posts;
-		}
-    }
-}
-
-function validateToolbarItems() {
-	/* 	have to do this to insure that all open windows have their 
-		toolbars updated with the latest unread post count. */
-    var toolbarItems = safari.extension.toolbarItems;
-    for (var i = 0; i < toolbarItems.length; ++i) {
-        if (toolbarItems[i].identifier !== "tumblr_posts")
-            continue;
-
-        toolbarItems[i].validate();
-    }
+function updateBadges(e) {
+	if ("badge" in e.target) {
+	   	e.target.badge = set.unread_posts;
+	}
 }
 
 function updateUnreadCount(count) {
-    set.unread_posts = count;
-    validateToolbarItems();
+	set.unread_posts = count;
+	
+    var toolbarItems = safari.extension.toolbarItems;
+    for (var i = 0; i < toolbarItems.length; ++i) {
+        if (toolbarItems[i].identifier === "tumblr_posts")
+            toolbarItems[i].validate();
+    }
 }
 
+/* 	Might want to just limit it to checking for 50 posts.
+	The usecase beyond 50 is uncommon and unpredictable. */
 function checkForPosts() {
 	// maximum for num is 50
 	if (set.account_valid && set.unread_posts <= 250) {
-		interval = clearInterval(interval);
 		
 		$.ajax({
 			url: 'http://www.tumblr.com/api/dashboard', 
@@ -124,25 +113,22 @@ function checkForPosts() {
 					total = count + set.unread_posts;
 					console.log("Unread count: "+total);
 					updateUnreadCount(total);
+				} else {
+					console.log("Cannot find the latest post in this batch.");
 				}
-				
-				set.last_checked = new Date().getTime();
-				interval = setInterval(findLastChecked, 1000);
 			},
 			error: function(e, r, s) {
 				if (e.status == 403) {
 					set.account_valid = false;
-					invalidAlert();
-					interval = setInterval(findLastChecked, 1000);
+					alert(invalid_text);
 				} else {
 					console.log("Unexpected error: "+e.status);
-					interval = setInterval(findLastChecked, 30000);
 				}
 			}
 		});
 	} else {
 		if(!set.account_valid) {
-			console.log("Invalid Account.");
+			alert(invalid_text);
 		}
 		if(set.unread_posts > 250) {
 			console.log("Too many posts to keep track of.");
@@ -150,19 +136,8 @@ function checkForPosts() {
 	}
 }
 
-function findLastChecked() {
-	if (set.last_checked == "never") {
-		checkForPosts();
-	} else {
-		// Determine the difference in seconds since last checked
-		var now = new Date().getTime();
-		var diff_secs = parseInt((now - set.last_checked)/1000);
-		
-		if (diff_secs > RATE) {
-			checkForPosts();
-		}
-	}
-}
+// Do this once upon launching Safari
+checkForPosts();
 
 </script>
 </head>
