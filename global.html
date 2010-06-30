@@ -7,6 +7,8 @@
 
 // RATE: how frequently the dashboard API is polled (in seconds)
 const RATE = 60*5;
+
+// These are a huge pain to type repeatedly.
 const app = safari.application;
 const sec = safari.extension.secureSettings; // email and password
 const set = safari.extension.settings; // everything else
@@ -38,6 +40,7 @@ function validateAccount(e) {
 			error: function(e, r, s) {
 				if (e.status == 403) {
 					set.account_valid = false;
+					invalidAlert();
 				} else {
 					console.log("Unexpected error: "+e.status);
 				}
@@ -55,16 +58,18 @@ function handleMessage(e) {
 	}
 }
 
+function invalidAlert() {
+	alert("Hey, bub. Looks like your account credentials are invalid. "
+	+"Try retyping them, but carefully this time."
+	+"\n(Safari->Preferences->Extensions->Tumblr Notifier)");
+}
+
 function handleCommand(e) {
 	if (e.command === "loadDashboard") {
-		if (set.account_valid) {
-			var new_tab = e.target.browserWindow.openTab();
-			new_tab.url = "http://www.tumblr.com/dashboard";
-		} else {
-			alert("Hey, bub. Looks like your account credentials are invalid. "
-			+"Try retyping them, but carefully this time."
-			+"\n(Safari->Preferences->Extensions->Tumblr Notifier)");
-		}
+		/* 	Open Tumblr's dashboard in a new tab
+			when a user clicks the Toolbar Item. */
+		var new_tab = e.target.browserWindow.openTab();
+		new_tab.url = "http://www.tumblr.com/dashboard";
 	}
 }
 
@@ -78,6 +83,8 @@ function updateBadges(e)
 }
 
 function validateToolbarItems() {
+	/* 	have to do this to insure that all open windows have their 
+		toolbars updated with the latest unread post count. */
     var toolbarItems = safari.extension.toolbarItems;
     for (var i = 0; i < toolbarItems.length; ++i) {
         if (toolbarItems[i].identifier !== "tumblr_posts")
@@ -96,7 +103,6 @@ function checkForPosts() {
 	// maximum for num is 50
 	if (set.account_valid && set.unread_posts <= 250) {
 		interval = clearInterval(interval);
-		set.last_checked = new Date().getTime();
 		
 		$.ajax({
 			url: 'http://www.tumblr.com/api/dashboard', 
@@ -120,18 +126,17 @@ function checkForPosts() {
 					updateUnreadCount(total);
 				}
 				
+				set.last_checked = new Date().getTime();
 				interval = setInterval(findLastChecked, 1000);
 			},
 			error: function(e, r, s) {
 				if (e.status == 403) {
 					set.account_valid = false;
+					invalidAlert();
 					interval = setInterval(findLastChecked, 1000);
-				} else 	if (e.status == 503) {
-					console.log("Tumblr server error: "+e.status);
-					// Tumblr's servers aren't doing so well. Recheck in 30 secs.
-					interval = setInterval(findLastChecked, 30000);
 				} else {
 					console.log("Unexpected error: "+e.status);
+					interval = setInterval(findLastChecked, 30000);
 				}
 			}
 		});
