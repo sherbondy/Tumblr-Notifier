@@ -11,9 +11,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2</string>
+	<string>2.01</string>
 	<key>CFBundleVersion</key>
-	<string>1.2</string>
+	<string>2.01</string>
 	<key>Chrome</key>
 	<dict>
 		<key>Global Page</key>
@@ -47,7 +47,7 @@
 		</dict>
 	</dict>
 	<key>Description</key>
-	<string>Notifies you when a new post appears in your Tumblr Dashboard. Credentials are stored securely.</string>
+	<string>Notifies you when a new post appears in your Tumblr Dashboard.</string>
 	<key>ExtensionInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>Permissions</key>
