@@ -53,7 +53,7 @@ function update_new_post_count(count) {
 }
 
 function checkForPosts() {
-	if (set.script_src) {
+	if (set.script_src && set.unread_posts <= 100) {
     document.body.innerHTML = '';
     var script_include = document.createElement('script');
 		script_include.setAttribute('type', 'text/javascript');
