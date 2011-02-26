@@ -2,63 +2,27 @@
 <html>
 <head>
 
-<script src="jquery-1.4.2.min.js" type="text/javascript"></script>
 <script type="text/javascript">
 
 // These are a huge pain to type repeatedly.
 const app = safari.application;
-const sec = safari.extension.secureSettings; // email and password
-const set = safari.extension.settings; // everything else
-
-const invalid_text = "Looks like your account credentials are invalid: \n"
-				   + "(Safari->Preferences->Extensions->Tumblr Notifier)"
+const set = safari.extension.settings; // our settings
 
 // RATE: how frequently the dashboard API is polled (in milliseconds)
-const RATE = 1000*60*5;
+const RATE = 1000*60;
 
 var interval = setInterval(checkForPosts, RATE);
-
-sec.addEventListener("change", validateAccount, false);
 
 app.addEventListener("message", handleMessage, false);
 app.addEventListener("command", handleCommand, false);
 app.addEventListener("validate", updateBadges, false);
 
-function validateAccount(e) {
-	var email = sec.email;
-	var pass = sec.password;
-	if (email && pass) {
-		email = encodeURI(email.trim());
-		pass = encodeURI(pass.trim());
-		$.ajax({
-			url: 'http://www.tumblr.com/api/authenticate', 
-			data: {email: email, password: pass},
-			type: 'POST',
-			dataType: 'xml',
-			success: function(data) {
-				console.log("Account Valid.")
-				set.account_valid = true;
-				// immediately check for new posts upon validation
-				checkForPosts();
-			},
-			error: function(e, r, s) {
-				if (e.status == 403) {
-					set.account_valid = false;
-					alert(invalid_text);
-				} else {
-					console.log("Unexpected error: "+e.status);
-				}
-			}
-		});
-	}
-}
-
-// Sets the latest_post setting to the new value from the tumblr site.
+// Sets the user key setting to a value parsed from the tumblr site.
 function handleMessage(e) {
-	if (e.name === "setLatest") {
-		set.latest_post = parseInt(e.message);
-		console.log("Latest post set to: "+set.latest_post);
-		updateUnreadCount(0);
+	if (e.name === "setScriptSrc") {
+		set.script_src = e.message;
+		console.log("Script src set to: "+set.script_src);
+		update_new_post_count(0);
 	}
 }
 
@@ -77,9 +41,10 @@ function updateBadges(e) {
 	}
 }
 
-function updateUnreadCount(count) {
-	set.unread_posts = count;
-	
+function update_new_post_count(count) {
+    set.unread_posts = parseInt(count);
+    console.log(set.unread_posts);
+
     var toolbarItems = safari.extension.toolbarItems;
     for (var i = 0; i < toolbarItems.length; ++i) {
         if (toolbarItems[i].identifier === "tumblr_posts")
@@ -87,59 +52,23 @@ function updateUnreadCount(count) {
     }
 }
 
-/* 	Might want to just limit it to checking for 50 posts.
-	The usecase beyond 50 is uncommon and unpredictable. */
 function checkForPosts() {
-	// maximum for num is 50
-	if (set.account_valid && set.unread_posts <= 250) {
-		
-		$.ajax({
-			url: 'http://www.tumblr.com/api/dashboard', 
-			data: {email: sec.email, password: sec.password, 
-				   start:set.unread_posts, num: 50},
-			type: 'POST',
-			dataType: 'xml',
-			
-			success: function(data) {
-				// If the user hasn't visited tumblr, set the latest post
-				if (set.latest_post == 0) {
-					set.latest_post = parseInt($(data).find("post:first").attr("id"));
-					console.log("Latest post set to: "+set.latest_post);
-				}
-				
-				count = $(data).find("post[id='"+set.latest_post+"']").index();
-				
-				if (count >= 0) {
-					total = count + set.unread_posts;
-					console.log("Unread count: "+total);
-					updateUnreadCount(total);
-				} else {
-					console.log("Cannot find the latest post in this batch.");
-				}
-			},
-			error: function(e, r, s) {
-				if (e.status == 403) {
-					set.account_valid = false;
-					alert(invalid_text);
-				} else {
-					console.log("Unexpected error: "+e.status);
-				}
-			}
-		});
-	} else {
-		if(!set.account_valid) {
-			alert(invalid_text);
-		}
-		if(set.unread_posts > 250) {
-			console.log("Too many posts to keep track of.");
-		}
-	}
+	if (set.script_src) {
+    document.body.innerHTML = '';
+    var script_include = document.createElement('script');
+		script_include.setAttribute('type', 'text/javascript');
+    script_include.setAttribute('src', set.script_src + '?' + new Date().getTime());
+		document.body.appendChild(script_include);
+  } else {
+    console.log('Must visit Tumblr to set source.');
+  }
 }
 
 // Do this once upon launching Safari
 checkForPosts();
 
 </script>
+
 </head>
 <body>
 </body>

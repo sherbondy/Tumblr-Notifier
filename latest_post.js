@@ -1,7 +1,7 @@
-var ol = document.getElementById("posts");
-if (ol) {
-    var lis = ol.getElementsByTagName("li");
-    var latest_post = lis[1].id.substr(4);
-
-    safari.self.tab.dispatchMessage("setLatest", latest_post);
+var content = document.getElementById('content');
+var the_script = content.getElementsByTagName('script')[0];
+var re = new RegExp('(http://.+.js)');
+var the_src = re.exec(the_script.innerHTML);
+if (the_src) {
+    safari.self.tab.dispatchMessage("setScriptSrc", the_src[1]);
 }
