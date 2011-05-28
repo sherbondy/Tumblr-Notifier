@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<script type='text/javascript'>
+<script type="text/javascript">
 
 // These are a huge pain to type repeatedly.
 const app = safari.application;
@@ -10,12 +10,6 @@ const set = safari.extension.settings; // our settings
 
 // RATE: how frequently the dashboard API is polled (in milliseconds)
 const RATE = 1000*60;
-
-var interval = setInterval(checkForPosts, RATE);
-
-app.addEventListener('message', handleMessage, false);
-app.addEventListener('command', handleCommand, false);
-app.addEventListener('validate', updateBadges, false);
 
 // Sets the user key setting to a value parsed from the tumblr site.
 function handleMessage(e) {
@@ -67,12 +61,19 @@ function checkForPosts() {
   }
 }
 
-// Do this once upon launching Safari
-checkForPosts();
+var interval = setInterval(checkForPosts, RATE);
+
+app.addEventListener('message', handleMessage, false);
+app.addEventListener('command', handleCommand, false);
+app.addEventListener('validate', updateBadges, false);
 
 </script>
 
 </head>
 <body>
+  <script type="text/javascript">
+    // Do this once upon launching Safari
+    checkForPosts();
+  </script>
 </body>
 </html>

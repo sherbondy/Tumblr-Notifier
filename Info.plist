@@ -40,11 +40,15 @@
 	<dict>
 		<key>Scripts</key>
 		<dict>
-			<key>End</key>
+			<key>Start</key>
 			<array>
-				<string>contentscript.js</string>
+				<string>latest_post.js</string>
 			</array>
 		</dict>
+		<key>Whitelist</key>
+		<array>
+			<string>http://www.tumblr.com/dashboard</string>
+		</array>
 	</dict>
 	<key>Description</key>
 	<string>Notifies you when a new post appears in your Tumblr Dashboard.</string>
