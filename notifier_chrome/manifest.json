@@ -1,0 +1,20 @@
+{
+  "name": "Tumblr Notifier",
+  "version": "1.0",
+  "description": "Find out when new posts appear in your Tumblr Dashboard.",
+  "permissions": [
+    "tabs",
+    "http://www.tumblr.com/dashboad"
+  ],
+  "background_page": "background.html",
+  "browser_action": {
+    "default_icon": "t.png",
+    "default_title": "Tumblr Notifier"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://www.tumblr.com/dashboard"],
+      "js": ["contentscript.js"]
+    }
+  ]
+}

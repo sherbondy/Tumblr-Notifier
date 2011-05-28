@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script type="text/javascript">
+
+const ba = chrome.browserAction;
+const tumblr_url = 'http://www.tumblr.com/dashboard';
+
+// RATE: how frequently the dashboard API is polled (in milliseconds)
+const RATE = 1000*60;
+
+var interval = setInterval(checkForPosts, RATE);
+
+
+function isTumblrUrl(url) {
+  if (url.indexOf(tumblr_url) != 0) return false;
+  return true;
+}
+
+ba.onClicked.addListener(function(tab) {
+  chrome.tabs.getAllInWindow(undefined, function(tabs) {
+    for (var i = 0, tab; tab = tabs[i]; i++) {
+      if (tab.url && isTumblrUrl(tab.url)) {
+        chrome.tabs.update(tab.id, {selected: true});
+        return;
+      }
+    }
+    /* Open Tumblr's dashboard in a new tab
+    when a user clicks the Toolbar Item. */
+
+    chrome.tabs.create({url: tumblr_url});
+
+  });
+});
+
+function update_new_post_count(count) {
+  // check if it's a bona-fide number
+  if (parseFloat(count) == parseInt(count)) {
+    localStorage.unread_count = count;
+    console.log(localStorage.unread_count);
+
+    if (count > 0) {
+      ba.setBadgeText({text:localStorage.unread_count});
+    } else {
+      ba.setBadgeText({text:''});
+    }
+  }
+}
+
+// This almost identical to Tumblr's check_for_new_posts function
+
+function checkForPosts() {
+  if (localStorage.script_src && localStorage.unread_count <= 100) {
+    document.body.innerHTML = '';
+    var script_include = document.createElement('script');
+    script_include.setAttribute('type', 'text/javascript');
+    script_include.setAttribute('src', localStorage.script_src + '?' + new Date().getTime());
+    document.body.appendChild(script_include);
+  } else {
+    localStorage.unread_count = 0;
+    console.log('Must visit Tumblr to set source.');
+  }
+}
+
+chrome.extension.onRequest.addListener(function(the_src, sender, sendResponse) {
+    if (the_src.length > 0) {
+      localStorage.script_src = the_src;
+      console.log('Script src set to: ' + localStorage.script_src);
+      update_new_post_count(0);
+    }
+});
+
+</script>
+
+</head>
+<body>
+  <script type="text/javascript">
+    // Called in the body to ensure the dom is ready.
+    checkForPosts();
+  </script>
+</body>
+</html>
+
