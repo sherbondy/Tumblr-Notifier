@@ -11,9 +11,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.01</string>
+	<string>2.02</string>
 	<key>CFBundleVersion</key>
-	<string>2.01</string>
+	<string>2.02</string>
 	<key>Chrome</key>
 	<dict>
 		<key>Global Page</key>
@@ -42,7 +42,7 @@
 		<dict>
 			<key>End</key>
 			<array>
-				<string>latest_post.js</string>
+				<string>contentscript.js</string>
 			</array>
 		</dict>
 	</dict>

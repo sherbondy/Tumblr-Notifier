@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<script type="text/javascript">
+<script type='text/javascript'>
 
 // These are a huge pain to type repeatedly.
 const app = safari.application;
@@ -13,53 +13,55 @@ const RATE = 1000*60;
 
 var interval = setInterval(checkForPosts, RATE);
 
-app.addEventListener("message", handleMessage, false);
-app.addEventListener("command", handleCommand, false);
-app.addEventListener("validate", updateBadges, false);
+app.addEventListener('message', handleMessage, false);
+app.addEventListener('command', handleCommand, false);
+app.addEventListener('validate', updateBadges, false);
 
 // Sets the user key setting to a value parsed from the tumblr site.
 function handleMessage(e) {
-	if (e.name === "setScriptSrc") {
-		set.script_src = e.message;
-		console.log("Script src set to: "+set.script_src);
-		update_new_post_count(0);
-	}
+  if (e.name === 'setScriptSrc') {
+    set.script_src = e.message;
+    console.log('Script src set to: '+set.script_src);
+    update_new_post_count(0);
+  }
 }
 
 function handleCommand(e) {
-	if (e.command === "openDashboard") {
-		/* 	Open Tumblr's dashboard in a new tab
-			when a user clicks the Toolbar Item. */
-		var new_tab = e.target.browserWindow.openTab();
-		new_tab.url = "http://www.tumblr.com/dashboard";
-	}
+  if (e.command === 'openDashboard') {
+    /* Open Tumblr's dashboard in a new tab
+       when a user clicks the Toolbar Item. */
+    var new_tab = e.target.browserWindow.openTab();
+    new_tab.url = 'http://www.tumblr.com/dashboard';
+  }
 }
 
 function updateBadges(e) {
-	if ("badge" in e.target) {
-	   	e.target.badge = set.unread_posts;
-	}
+  if ('badge' in e.target) {
+    e.target.badge = set.unread_posts;
+  }
 }
 
 function update_new_post_count(count) {
+  if (parseFloat(count) == parseInt(count)) {
     set.unread_posts = parseInt(count);
     console.log(set.unread_posts);
 
     var toolbarItems = safari.extension.toolbarItems;
     for (var i = 0; i < toolbarItems.length; ++i) {
-        if (toolbarItems[i].identifier === "tumblr_posts")
+        if (toolbarItems[i].identifier === 'tumblr_posts')
             toolbarItems[i].validate();
     }
+  }
 }
 
 // This almost identical to Tumblr's check_for_new_posts function
 function checkForPosts() {
-	if (set.script_src && set.unread_posts <= 100) {
+  if (set.script_src && set.unread_posts <= 100) {
     document.body.innerHTML = '';
     var script_include = document.createElement('script');
-		script_include.setAttribute('type', 'text/javascript');
+    script_include.setAttribute('type', 'text/javascript');
     script_include.setAttribute('src', set.script_src + '?' + new Date().getTime());
-		document.body.appendChild(script_include);
+    document.body.appendChild(script_include);
   } else {
     console.log('Must visit Tumblr to set source.');
   }
